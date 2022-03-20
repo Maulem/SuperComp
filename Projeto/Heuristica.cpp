@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <string>
 
+// Flags de compilação:
+// g++ -Wall -O3 Heuristica.cpp -o Heuristica
+// ./Heuristica < Heuristica.txt
+
 
 /*
     Struct de cada ponto da matriz final, tendo um número
