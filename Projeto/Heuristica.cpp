@@ -5,7 +5,7 @@
 
 // Flags de compilação:
 // g++ -Wall -O3 Heuristica.cpp -o Heuristica
-// ./Heuristica < Heuristica.txt
+// ./Heuristica < Sequencias.seq
 
 
 /*

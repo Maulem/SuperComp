@@ -13,6 +13,6 @@
 
 SOURCES = $(wildcard ./*/*.cpp)
 EXECS = $(SOURCES:%.cpp=%)
-CFLAGS = -g Wall
+CFLAGS = -g Wall -O3
 
 all: $(EXECS)
