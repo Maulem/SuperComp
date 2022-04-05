@@ -3,9 +3,10 @@
 #include <cmath>
 #include <iomanip>      // std::setprecision
 
-// g++ -g ex2.cpp -o ex2
+// ATENÇÃO: COMPILE MANUALMENTE PRA USAR O VALGRIND
+// g++ -Wall -O3 -g ex2.cpp -o ex2
 // valgrind --tool=callgrind ./ex2 < ex2.txt
-// callgrind_annotate callgrind.out.4588 ex2.cpp
+// callgrind_annotate callgrind.out.ex2 ex2.cpp
 // kcachegrind callgrind.out.4588(pid aqui)
 
 void calcDistancias(int n, std::vector<std::vector<double>> &matriz, std::vector<std::vector<double>> &ansmatriz) {

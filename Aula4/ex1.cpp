@@ -1,6 +1,10 @@
-#include<iostream>
-#include<algorithm>
-using namespace std;
+#include <iostream>
+#include <algorithm>
+
+// ATENÇÃO: COMPILE MANUALMENTE PRA USAR O VALGRIND
+// g++ -Wall -O3 -g ex1.cpp -o ex1
+// valgrind --tool=callgrind ./ex1
+// callgrind_annotate callgrind.out.ex1 ex1.cpp
 
 constexpr int M = 2048;
 constexpr int N = 2048;
@@ -24,10 +28,10 @@ double improved_sum(const double a[][N]) {
 
 int main() {
     static double a[M][N];
-    fill_n(&a[0][0], M*N, 1.0 / (M*N));
-    cout << naive_sum(a) << endl;
+    std::fill_n(&a[0][0], M*N, 1.0 / (M*N));
+    std::cout << naive_sum(a) << std::endl;
     static double b[M][N];
-    fill_n(&b[0][0], M*N, 1.0 / (M*N));
-    cout << improved_sum(b) << endl;
+    std::fill_n(&b[0][0], M*N, 1.0 / (M*N));
+    std::cout << improved_sum(b) << std::endl;
     return 0;
 }
