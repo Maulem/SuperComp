@@ -152,7 +152,7 @@ int main() {
     std::vector<std::string> dna_b;
     int size_a, size_b;
 
-    // Le os DNAs inseridos pelo usuario
+    // Lê os DNAs inseridos pelo usuario
     std::cin >> string_dna_a;
     std::cin >> string_dna_b;
 

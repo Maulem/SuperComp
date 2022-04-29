@@ -4,9 +4,24 @@
 #include <string>
 
 // Flags de compilação:
-// g++ -Wall -O3 Heuristica.cpp -o Heuristica
-// ./Heuristica < Sequencias.seq
+// g++ -Wall -O3 BuscaExaustiva.cpp -o BuscaExaustiva
+// ./BuscaExaustiva < Sequencias.seq
 
+
+// Pesos para match, mismatch e gap respectivamente
+#define WMAT 2
+#define WMIS -1
+#define WGAP -1
+
+/*
+    Struct de cada grupo de subsequencias "a" e "b" correspondentes
+    incluindo o score entre elas. 
+*/
+struct subsequenceGroup {
+    int score;
+    std::vector<std::string> subsequence_a;
+    std::vector<std::string> subsequence_b;
+};
 
 /*
     Struct de cada ponto da matriz final, tendo um número
@@ -18,6 +33,40 @@ struct point {
     int iJump;
     int jJump;
 };
+
+// Gera todas as subsequencias a partir de uma sequencia
+void generateSubsequences(std::vector<std::string> sequence, std::vector<std::vector<std::string>> &subseqs_list) {
+
+    std::vector<std::string> subsequence;
+
+    for(int i = 0; i <= int(sequence.size()); i++) {
+        for(int j = 1; j <= int(sequence.size()); j++) {
+            subsequence.clear();
+            for (int k = i; k < j; k++){
+                subsequence.push_back(sequence[k]);
+            }
+            if (subsequence.size() > 0) subseqs_list.push_back(subsequence);
+        }
+    }
+}
+
+// Compara duas sequencias iguais e retorna o Score delas
+int scoreEqualSequences(std::vector<std::string> sequence_a, std::vector<std::string> sequence_b) {
+    int score = 0; 
+    std::vector<std::string> melhor_subseq_a, melhor_subseq_b;
+    for (int i = 0; i < (int)sequence_a.size(); i++) {
+
+        // Caso seja um Match
+        if (sequence_a[i] == sequence_b[i]) score += WMAT;
+
+        // Caso seja um Mismatch
+        else if (sequence_a[i] != sequence_b[i]) score += WMIS;
+
+        // Caso seja um Gap
+        else score += WGAP;
+    }  
+    return score;
+}
 
 point max(int diagon, int deletion, int insertion){
 
@@ -53,21 +102,20 @@ point max(int diagon, int deletion, int insertion){
     return local;
 }
 
-int smithWaterman(std::vector<std::string> dna_a, std::vector<std::string> dna_b, int size_a, int size_b) {
+int smithWaterman(std::vector<std::string> dna_a, std::vector<std::string> dna_b, subsequenceGroup &smith_waterman_result) {
 
     // Inicia uma matriz de pontos chamada H com base no tamanho das sequencias
-    point H[size_a+1][size_b+1];
+    point H[(int)dna_a.size() + 1][(int)dna_b.size() + 1];
 
     // Zera a primeira coluna
-    for (int i = 1; i <= size_a; i++) {
+    for (int i = 1; i <= (int)dna_a.size(); i++) {
         H[i][0].number = 0;
     }
     // Zera a primeira linha
-    for (int j = 0; j <= size_b; j++) {
+    for (int j = 0; j <= (int)dna_b.size(); j++) {
         H[0][j].number = 0;
     }
 
-    
     // Declara as variaveis usadas no algoritmo
     int diagon, deletion, insertion, wStatus;
 
@@ -106,66 +154,13 @@ int smithWaterman(std::vector<std::string> dna_a, std::vector<std::string> dna_b
         }
     }
 
-
-    // Imprime a matriz de saida depois de aplicado o algoritmo
-    std::cout << std::endl << "--------------------------------------------" << std::endl;
-    std::cout <<              "              Matriz de saida               " << std::endl;
-    std::cout << std::endl;
-
-    // Inicia em -2 para poder imprimir a sequencia de DNA b e uma linha em branco na matriz
-    for (int i = -2; i <= size_a; i++){
-        // Imprime coisas diferentes dependendo de cada linha
-        switch (i) {
-            case -2:
-                // Linha com DNA b
-                std::cout << "         ";
-                break;
-            case -1:
-                // Linha em branco
-                break;
-            case  0:
-                // Linha da matriz só de zeros
-                std::cout << "       ";
-                break;
-            default:
-                // Imprime as letras do DNA a na vertical e o resto das linhas
-                std::cout << "    " << dna_a[i-1] << "  ";
-                break;
-        }
-
-        // Imprime cada linha
-        for (int j = 0; j <= size_b; j++){
-            // Imprime coisas diferentes dependendo de cada linha
-            switch (i) {
-                case -2:
-                    // Primeira linha com o DNA b
-                    if (j < size_b) {
-                        std::cout << "  " << dna_b[j];
-                    }
-                    break;
-                case -1:
-                    // Linha vazia
-                    break;
-                default:
-                    // Para alinhamento se o número for menor que 10 imprime um espaço na frente
-                    if (H[i][j].number <= 9) {
-                        std::cout << " " << H[i][j].number << " ";
-                    }
-                    else {
-                        std::cout << H[i][j].number << " ";
-                    }
-            }
-        }
-        std::cout << std::endl;
-    }
-
-
     // Vetores em que será guardado as sequencias de DNA com base na matriz criada
     std::vector<std::string> seq_dna_a;
     std::vector<std::string> seq_dna_b;
 
     // O inicio será pela posição do ponto de máximo valor na matriz
     int i = maxPoint.iJump, j = maxPoint.jJump;
+
 
     // Enquanto não voltar ao ponto (0,0) e o ponto analisado tiver origens
     while ((i > 0 && j > 0) && (!(H[i][j].jJump == 0 && H[i][j].iJump == 0))) {
@@ -195,36 +190,28 @@ int smithWaterman(std::vector<std::string> dna_a, std::vector<std::string> dna_b
         // Volta na direção que o ponto atual veio
         i = i - H[iActual][jActual].iJump;
         j = j - H[iActual][jActual].jJump;
-
-          
     }
 
     // Como as sequencias são feitas de trás pra frente é necessario inverte-las
     std::reverse(seq_dna_a.begin(),seq_dna_a.end());
     std::reverse(seq_dna_b.begin(),seq_dna_b.end());
 
-    // Imprime os DNAs reconstruidos
-    std::cout << std::endl << "--------------------------------------------" << std::endl;
-    std::cout <<              "            DNAs reconstruidos:             " << std::endl;
-    std::cout << "      DNA a: ";
-    for(int i = 0; i < seq_dna_a.size(); i++){
-        std::cout << seq_dna_a[i];
-    }
-    std::cout << std::endl;
-    std::cout << "      DNA b: ";
-    for(int i = 0; i < seq_dna_b.size(); i++){
-        std::cout << seq_dna_b[i];
-    }
+    smith_waterman_result.score = maxPoint.number;
+    smith_waterman_result.subsequence_a = seq_dna_a;
+    smith_waterman_result.subsequence_b = seq_dna_b;
 
     return maxPoint.number;
 }
 
-int main() {
 
-    // Inicia as variaveis dos DNAs e seus tamanhos
+int main() {
+    
+    // Declara variaveis usadas
     std::string string_dna_a, string_dna_b;
     std::vector<std::string> dna_a;
     std::vector<std::string> dna_b;
+    std::vector<std::vector<std::string>> subseqs_a_list;
+    std::vector<std::vector<std::string>> subseqs_b_list;
     int size_a, size_b;
 
     // Le os DNAs inseridos pelo usuario
@@ -235,44 +222,89 @@ int main() {
     size_a = string_dna_a.size();
     size_b = string_dna_b.size();
 
-    dna_a.reserve(size_a);
-    dna_b.reserve(size_b);
-
     // Transfere os DNAs pra vetores pra ficar mais facil manipular
-    for(int i = 0; i < size_a; i++){
+    for (int i = 0; i < size_a; i++) {
         dna_a.push_back({string_dna_a[i]});
     }
-    for(int i = 0; i < size_b; i++){
+    for (int i = 0; i < size_b; i++) {
         dna_b.push_back({string_dna_b[i]});
     }
 
     // Printa os DNAs enviados para o usuario conferir
-    std::cout << std::endl << "============================================" << std::endl;
-    std::cout <<              "               DNAs analisados              " << std::endl;
-    std::cout <<              "          Primeiro DNA, tamanho: " << size_a << std::endl;
+    std::cout << std::endl
+              << "============================================" << std::endl;
+    std::cout << "               DNAs analisados              " << std::endl;
+    std::cout << "          Primeiro DNA, tamanho: " << size_a << std::endl;
     std::cout << "      DNA a: ";
-    for(int i = 0; i < size_a; i++){
+    for (int i = 0; i < size_a; i++) {
         std::cout << dna_a[i];
     }
     std::cout << std::endl;
-    std::cout << std::endl << "--------------------------------------------" << std::endl;
-    std::cout <<              "           Segundo DNA, tamanho: " << size_b << std::endl;
+    std::cout << std::endl
+              << "--------------------------------------------" << std::endl;
+    std::cout << "           Segundo DNA, tamanho: " << size_b << std::endl;
     std::cout << "      DNA b: ";
-    
-    for(int i = 0; i < size_b; i++){
+    for (int i = 0; i < size_b; i++) {
         std::cout << dna_b[i];
     }
+    std::cout << std::endl;
 
-    std::cout << "ponto 1";
-    //std::cout << std::endl;
-    std::cout << "ponto 2";
 
-    // Usa o algoritimo Smith-Waterman para calcular as sequencias 
-    int score = smithWaterman(dna_a, dna_b, size_a, size_b);
+    // Gera todas as subsequencias possiveis dos DNAs A e B
+    generateSubsequences(dna_a, subseqs_a_list);
+    generateSubsequences(dna_b, subseqs_b_list);
 
-    // Imprime a máxima pontuação
-    std::cout << std::endl << "--------------------------------------------" << std::endl;
-    std::cout << std::endl << "           Pontuação máxima:" << score << std::endl << std::endl;
+    // Gera as variaveis usadas para checar as subsequencias
+    subsequenceGroup best_result, smith_waterman_result;
+    std::vector<std::string> best_local_subseq_a, best_local_subseq_b;
+    int score, max_score = 0;
+    
+    // Para cada subsequencia na lista de subsequencias a
+    for (auto& subseq_a : subseqs_a_list) {
+        // Para cada subsequencia na lista de subsequencias b
+        for (auto& subseq_b : subseqs_b_list) {
+            best_local_subseq_a.clear();
+            best_local_subseq_b.clear();
+            // Quando as subsequencias tem tamanhos iguais compara cada base entre si
+            if ((int)subseq_a.size() == (int)subseq_b.size()){
+                score = scoreEqualSequences(subseq_a, subseq_b);
+                best_local_subseq_a = subseq_a;
+                best_local_subseq_b = subseq_b;
+            }
+            // Quando as subsequencias tem tamanhos diferentes faz Smith Waterman
+            else{
+                score = smithWaterman(subseq_a, subseq_b, smith_waterman_result);
+                best_local_subseq_a = smith_waterman_result.subsequence_a;
+                best_local_subseq_b = smith_waterman_result.subsequence_b;
+            }
+            // Salva novo score máximo se tiver
+            if (score > max_score){
+                max_score = score;
+                best_result.score = max_score;
+                best_result.subsequence_a = best_local_subseq_a;
+                best_result.subsequence_b = best_local_subseq_b;
+            }
+        }
+    }
+    
+
+    // Imprime a máxima pontuação e suas subsequencias
+    std::cout << std::endl << "--------------------------------------------";
+    std::cout << std::endl << "          Pontuação máxima: " << best_result.score << std::endl ;
+
+    std::cout << std::endl << "        Melhor subsequencia de A:" << std::endl;
+    std::cout << "           ";
+    for (auto& el : best_result.subsequence_a ){
+        std::cout << el << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << std::endl << "        Melhor subsequencia de B:" << std::endl;
+    std::cout << "           ";
+    for (auto& el : best_result.subsequence_b){
+        std::cout << el << " ";
+    }
+    std::cout << std::endl;
 
     return 0;
 }

@@ -4,6 +4,18 @@
 #include<random>
 using namespace std;
 
+/*
+        Exploitation é o que fazemos no caso da Heuristica, em que utilizamos a logica para explorar
+    uma caracteristica do problema, no caso da mochila peso e valor, o que permite ganhos a curto 
+    prazo porém essa solução pode se prender a máximos e minimos locais.
+
+        Exploration é o ato de explorar o problema em busca de maior variabilidade de resultados
+    o que por exemplo pode acabar sendo util caso a solução possa estar presa em algum máximo ou
+    minimo local, já que com maior variabilidade há o potencial de se encontrar maximos e minimos
+    globais. No caso da mochila por exemplo adicionamos certa variedade nessa aula adicionando o
+    item com 50% de chance "aleatoria".
+*/
+
 int main() {
 
     struct item {
