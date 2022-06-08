@@ -1,6 +1,6 @@
 import random
 
-max_sequence_length = 100
+max_sequence_length = 150
 filename = 1
 
 for n in range(5, max_sequence_length + 1, 10):
